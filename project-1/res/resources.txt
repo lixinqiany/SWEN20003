@@ -1,0 +1,5 @@
+Sources for the resources in this project:
+
+track1.wav: Cruising Down 8bit Lane - Monument_Music https://pixabay.com/music/search/genre/video%20games/
+
+"8 bit revival" font created on 10.23.01 by Jeff George (inpheaux@skizzers.org)
