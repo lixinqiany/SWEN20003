@@ -48,15 +48,19 @@ public class ShadowDance extends AbstractGame  {
                         switch (typeOfLaneOrNote) {
                             case "Left":
                                 FOUR_LANES[numOfLane] = new Lane("lane"+typeOfLaneOrNote, x);
+                                numOfLane++;
                                 break;
                             case "Right":
                                 FOUR_LANES[numOfLane] = new Lane("lane"+typeOfLaneOrNote, x);
+                                numOfLane++;
                                 break;
                             case "Up":
                                 FOUR_LANES[numOfLane] = new Lane("lane"+typeOfLaneOrNote, x);
+                                numOfLane++;
                                 break;
                             case "Down":
                                 FOUR_LANES[numOfLane] = new Lane("lane"+typeOfLaneOrNote, x);
+                                numOfLane++;
                                 break;
                         }
                         break;
