@@ -2,31 +2,47 @@ import bagel.*;
 import bagel.util.Point;
 
 public class Note {
-    private final Image note;
+    protected final Image note;
     private Point coordinate;
-    double noteX;
-    double noteY;
+    private final String direction;
+    protected double noteX;
+    protected double noteY;
+    private double height;
 
-    public Note(String direction, Point coordinate) {
-        this.note = new Image(String.format("res/note%s.png", direction));
+    public Note(String direction, Point coordinate, String type) {
+        if (type.equals("Normal")) {
+            this.note = new Image(String.format("res/note%s.png", direction));
+        } else {
+            this.note = new Image(String.format("res/holdNote%s.png", direction));
+        }
         this.coordinate = coordinate;
         this.noteX = coordinate.x;
         this.noteY = coordinate.y;
+        this.height = this.note.getHeight();
+        this.direction = direction;
     }
 
     /**
      * return ture, when note can be successfully drawn. otherwise, return false.
      */
     public boolean draw(double speed) {
-
         // check whether `y` is out of window
-        if (noteY < Window.getHeight()) {
+        double top = noteY - (this.height/2);
+        if (top < Window.getHeight()) {
             this.note.draw(noteX, noteY);
             // keep `x`, increment y
-            noteY += 2;
+            noteY += speed;
             return true;
         } else {
             return false;
         }
+    }
+
+    public String getDirection() {
+        return this.direction;
+    }
+
+    public Point location() {
+        return new Point(noteX, noteY);
     }
 }
