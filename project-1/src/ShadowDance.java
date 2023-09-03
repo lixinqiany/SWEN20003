@@ -45,11 +45,16 @@ public class ShadowDance extends AbstractGame  {
     private final static int MISS = -5;
     private int currentScore = 0;
     private int grade = 0;
+    private int holdScore=0;
+    private Note x;
     private ArrayList<Note> waitDrawn = new ArrayList<Note>();
     private ArrayList<Note> waitDeleted = new ArrayList<Note>();
 
     // judge the stage of the game, involving "START", "GAMING"
     private String flag = "START";
+    private boolean holdFlag = false;
+    private String holdKey;
+    private int totalnotes =0;
 
     public ShadowDance(){
         super(WINDOW_WIDTH, WINDOW_HEIGHT, GAME_TITLE);
@@ -117,6 +122,7 @@ public class ShadowDance extends AbstractGame  {
                 }                                                                                                                                                                          
 
             }
+            this.totalnotes = actions.size();
         } catch (FileNotFoundException e) {
             System.err.println("File not exist : " + e.getMessage() + "\n");
         } catch (Exception e) {
@@ -140,6 +146,7 @@ public class ShadowDance extends AbstractGame  {
     @Override
     protected void update(Input input) {
         String key;
+        int indexHold;
 
         if (input.wasPressed(Keys.ESCAPE)){
             Window.close();
@@ -172,28 +179,173 @@ public class ShadowDance extends AbstractGame  {
             drawGaming();
             // score part
             key = detectPress(input);
+            //int holdScore =0;
             if (! key.equals("NO")) {
-                this.grade = score(waitDrawn, key);
-                this.currentScore += grade;
+                this.grade = score(waitDrawn, key, input);
+                if (this.grade ==1000) {
+                    System.out.println("hold start");
+                    this.grade = 0;
+                    holdFlag = true;
+                    this.holdKey = key;
+                    waitDrawn.forEach((e) -> {
+                        if(e.getDirection().equals(holdKey)) {
+                            this.x = e;
+                        }
+                    });
+
+                    //int holdScore =0;
+                    Point location = new Point();
+                    double distance;
+                    int x_oordinate;
+
+                    location = new Point(this.x.location().x, this.x.location().y+84);
+                    switch (holdKey) {
+                        case "Left":
+                            x_oordinate = LEFT;
+                            break;
+                        case "Right":
+                            x_oordinate = RIGHT;
+                            break;
+                        case "Down":
+                            x_oordinate = DOWN;
+                            break;
+                        case "Up":
+                        default:
+                            x_oordinate = UP;
+                            break;
+
+                    }
+                    distance = location.distanceTo(new Point (x_oordinate, 657));
+
+                    if (distance <= 15 ) {
+                        holdScore = PERFECT;
+                        System.out.println("perfect");
+                    } else if (distance<=50) {
+                        holdScore = GOOD;
+                        System.out.println("good");
+                    } else if (distance<=100) {
+                        holdScore = BAD;
+                        System.out.println("bad");
+                    } else if (distance<=200) {
+                        holdScore = MISS;
+                        System.out.println("miss");
+                    } else {
+                        System.out.println("200");
+                    }
+                    this.currentScore += holdScore;
+                   System.out.println(this.x.noteY+82);
+                } else {
+                    this.currentScore += grade;
+                }
                 textFrame =0;
             }
-            if (grade != 0) {
+            if (holdFlag) {
+                indexHold = notes.indexOf(holdKey);
+
+                if (input.wasReleased(Keys.DOWN) || input.wasReleased(Keys.LEFT)||input.wasReleased(Keys.RIGHT)||input.wasReleased(Keys.UP)) {
+                    System.out.println("released!");
+                    waitDrawn.forEach((e) -> {
+                        if(e.getDirection().equals(holdKey)) {
+                            this.x = e;
+                        }
+                    });
+
+                    //int holdScore =0;
+                    Point location = new Point();
+                    double distance;
+                    int x_oordinate;
+
+                    location = new Point(this.x.location().x, this.x.location().y-84);
+                    switch (holdKey) {
+                        case "Left":
+                            x_oordinate = LEFT;
+                            break;
+                        case "Right":
+                            x_oordinate = RIGHT;
+                            break;
+                        case "Down":
+                            x_oordinate = DOWN;
+                            break;
+                        case "Up":
+                        default:
+                            x_oordinate = UP;
+                            break;
+
+                    }
+                    distance = location.distanceTo(new Point (x_oordinate, 657));
+
+                    if (distance <= 15 ) {
+                        holdScore = PERFECT;
+                        System.out.println("perfect");
+                    } else if (distance<=50) {
+                        holdScore = GOOD;
+                        System.out.println("good");
+                    } else if (distance<=100) {
+                        holdScore = BAD;
+                        System.out.println("bad");
+                    } else if (distance<=200) {
+                        holdScore = MISS;
+                        System.out.println("miss");
+                    } else {
+                        System.out.println("200");
+                    }
+                    this.currentScore += holdScore;
+                    textFrame =0;
+                    waitDrawn.remove(this.x);
+                    totalnotes -=1;
+                    System.out.println(this.x.noteY-82);
+                }
+            }
+
+            if (grade != 0 || holdScore!=0) {
                 if (textFrame < 30) {
-                    textScore(grade);
-                    System.out.println(textFrame);
+                    if (holdScore!=0){
+                        textScore(holdScore);
+                    } else {
+                        textScore(grade);
+                    }
+                    //System.out.println(textFrame);
                     textFrame++;
+                }
+                else {
+                    if (holdScore!=0){
+                        holdScore=0;
+                    } else {
+                        grade = 0;
+                    }
+
                 }
             }
 
 
             waitDeleted.forEach((e) -> {
                 waitDrawn.remove(e);
+                totalnotes-=1;
             });
+
+            if (waitDeleted.size()>0){
+                for ( int j=0;j<waitDeleted.size();j++) {
+                    waitDeleted.remove(j);
+                }
+            }
+
+            if (totalnotes ==0) {
+                flag = "END";
+                if (this.currentScore<150) {
+                    flag = "LOSE";
+                }
+                System.out.println("flag");
+            }
 
             //System.out.println("frame="+frame);
             frame++;
+        } else if (flag.equals("END")){
+            drawClear();
+        } else if (flag.equals("LOSE")) {
+            drawLose();
         } else {
             updateInitial();
+
         }
     }
 
@@ -226,6 +378,30 @@ public class ShadowDance extends AbstractGame  {
         });
     }
 
+    public void drawClear() {
+        String clear = "CLEAR!";
+        double widthFont;
+        double x;
+        double y;
+        widthFont = FONT64.getWidth(clear);
+        x = Window.getWidth()/2.0 - widthFont/2.0;
+        y = Window.getHeight()/2.0 + 40/2.0;
+        BACKGROUND_IMAGE.draw(Window.getWidth()/2.0, Window.getHeight()/2.0);
+        FONT64.drawString(clear, x, y);
+    }
+
+    public void drawLose() {
+        String clear = "TRY AGAIN!";
+        double widthFont;
+        double x;
+        double y;
+        widthFont = FONT64.getWidth(clear);
+        x = Window.getWidth()/2.0 - widthFont/2.0;
+        y = Window.getHeight()/2.0 + 40/2.0;
+        BACKGROUND_IMAGE.draw(Window.getWidth()/2.0, Window.getHeight()/2.0);
+        FONT64.drawString(clear, x, y);
+    }
+
     public String detectPress(Input input) {
         String key = "NO";
         if (input.wasPressed(Keys.LEFT)) {
@@ -246,7 +422,7 @@ public class ShadowDance extends AbstractGame  {
         return key;
     }
 
-    public int score(ArrayList<Note> waitDrawn, String key){
+    public int score(ArrayList<Note> waitDrawn, String key, Input input){
         ArrayList<Note> left = new ArrayList<Note>();
         ArrayList<Note> right = new ArrayList<Note>();
         ArrayList<Note> down = new ArrayList<Note>();
@@ -276,19 +452,39 @@ public class ShadowDance extends AbstractGame  {
 
         if (key.equals("Left")) {
             if (left.size() > 0) {
-                finalScore = checkScore(left, LEFT);
+                if (left.get(0).getType().equals("Normal")) {
+                    finalScore = checkScore(left, LEFT);
+                } else {
+                    System.out.println("Pressed");
+                    return 1000;
+                }
             }
         } else if (key.equals("Right")) {
             if (right.size() > 0) {
-                finalScore = checkScore(right, RIGHT);
+                if (right.get(0).getType().equals("Normal")) {
+                    finalScore = checkScore(right, RIGHT);
+                } else {
+                    System.out.println("Pressed");
+                    return 1000;
+                }
             }
         } else if (key.equals("Down")) {
             if (down.size() > 0) {
-                finalScore = checkScore(down, DOWN);
+                if (down.get(0).getType().equals("Normal")) {
+                    finalScore = checkScore(down, DOWN);
+                } else {
+                    System.out.println("Pressed");
+                    return 1000;
+                }
             }
         } else if (key.equals("Up")) {
             if (up.size() > 0) {
-                finalScore = checkScore(up, UP);
+                if (up.get(0).getType().equals("Normal")) {
+                    finalScore = checkScore(up, UP);
+                } else {
+                    System.out.println("Pressed");
+                    return 1000;
+                }
             }
         }
         return finalScore;
@@ -302,6 +498,7 @@ public class ShadowDance extends AbstractGame  {
 
         location = lane.get(0).location();
         distance = location.distanceTo(new Point (laneX, 657));
+
         if (distance <= 15 ) {
             score = PERFECT;
             System.out.println("perfect");
@@ -318,9 +515,11 @@ public class ShadowDance extends AbstractGame  {
             System.out.println("200");
         }
 
+
         if (score != 0) {
             // when the score is calculated, don't draw the note
             waitDrawn.remove(lane.get(0));
+            totalnotes-=1;
         }
         return score;
     }

@@ -9,12 +9,15 @@ public class Note {
     protected double noteY;
     private double height;
 
+    private String type;
+
     public Note(String direction, Point coordinate, String type) {
         if (type.equals("Normal")) {
             this.note = new Image(String.format("res/note%s.png", direction));
         } else {
             this.note = new Image(String.format("res/holdNote%s.png", direction));
         }
+        this.type = type;
         this.coordinate = coordinate;
         this.noteX = coordinate.x;
         this.noteY = coordinate.y;
@@ -44,5 +47,9 @@ public class Note {
 
     public Point location() {
         return new Point(noteX, noteY);
+    }
+
+    public String getType() {
+        return type;
     }
 }
